@@ -37,7 +37,7 @@
 			&nbsp;<input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/>
 		</div>
 	</form:form>
-	<tags:message content="${message}"/>
+	<sys:message content="${message}"/>
 	<table id="contentTable" class="table table-striped table-bordered table-condensed">
 		<thead><tr>
 			<th>请假编号</th>
@@ -45,6 +45,7 @@
 			<th>创建时间</th>
 			<th>请假原因</th>
 			<th>当前节点</th>
+			<th>操作</th>
 		</tr></thead>
 		<tbody>
 		<c:forEach items="${page.list}" var="leave">
@@ -54,13 +55,15 @@
 			<tr>
 				<td>${leave.id}</td>
 				<td>${leave.createBy.name}</td>
-				<td>${leave.createDate}</td>
+				<td><fmt:formatDate value="${leave.createDate}" pattern="yyyy-MM-dd HH:mm:ss"/></td>
 				<td>${leave.reason}</td>
 				<c:if test="${not empty task}">
 					<td>${task.name}</td>
+					<td><a target="_blank" href="${ctx}/act/task/trace/photo/${task.processDefinitionId}/${task.executionId}">跟踪</a></td>
 				</c:if>
 				<c:if test="${empty task}">
 					<td>已结束</td>
+					<td>&nbsp;</td>
 				</c:if>
 			</tr>
 		</c:forEach>

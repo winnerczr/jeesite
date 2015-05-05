@@ -1,7 +1,5 @@
 /**
- * Copyright &copy; 2012-2013 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright &copy; 2012-2014 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
  */
 package com.thinkgem.jeesite.modules.sys.utils;
 
@@ -38,6 +36,17 @@ public class DictUtils {
 		}
 		return defaultValue;
 	}
+	
+	public static String getDictLabels(String values, String type, String defaultValue){
+		if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(values)){
+			List<String> valueList = Lists.newArrayList();
+			for (String value : StringUtils.split(values, ",")){
+				valueList.add(getDictLabel(value, type, defaultValue));
+			}
+			return StringUtils.join(valueList, ",");
+		}
+		return defaultValue;
+	}
 
 	public static String getDictValue(String label, String type, String defaultLabel){
 		if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(label)){
@@ -55,7 +64,7 @@ public class DictUtils {
 		Map<String, List<Dict>> dictMap = (Map<String, List<Dict>>)CacheUtils.get(CACHE_DICT_MAP);
 		if (dictMap==null){
 			dictMap = Maps.newHashMap();
-			for (Dict dict : dictDao.findAllList()){
+			for (Dict dict : dictDao.findAllList(new Dict())){
 				List<Dict> dictList = dictMap.get(dict.getType());
 				if (dictList != null){
 					dictList.add(dict);

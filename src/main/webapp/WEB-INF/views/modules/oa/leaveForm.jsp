@@ -30,10 +30,10 @@
 		<li><a href="${ctx}/oa/leave/">待办任务</a></li>
 		<li><a href="${ctx}/oa/leave/list">所有任务</a></li>
 		<shiro:hasPermission name="oa:leave:edit"><li class="active"><a href="${ctx}/oa/leave/form">请假申请</a></li></shiro:hasPermission>
-	</ul><br/>
+	</ul>
 	<form:form id="inputForm" modelAttribute="leave" action="${ctx}/oa/leave/save" method="post" class="form-horizontal">
 		<form:hidden path="id"/>
-		<tags:message content="${message}"/>
+		<sys:message content="${message}"/>
 		<div class="control-group">
 			<label class="control-label">请假类型：</label>
 			<div class="controls">
@@ -47,7 +47,7 @@
 			<div class="controls">
 				<input id="startTime" name="startTime" type="text" readonly="readonly" maxlength="20" class="Wdate required"
 					onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',isShowClear:false});"/>
-		</div>
+			</div>
 		</div>
 		<div class="control-group">
 			<label class="control-label">结束时间：</label>

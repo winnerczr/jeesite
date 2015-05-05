@@ -1,32 +1,17 @@
 /**
- * Copyright &copy; 2012-2013 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright &copy; 2012-2014 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
  */
 package com.thinkgem.jeesite.modules.cms.entity;
 
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 
-import com.thinkgem.jeesite.common.persistence.BaseEntity;
+import com.thinkgem.jeesite.common.persistence.DataEntity;
+import com.thinkgem.jeesite.common.utils.IdGen;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 
 /**
@@ -34,14 +19,9 @@ import com.thinkgem.jeesite.modules.sys.entity.User;
  * @author ThinkGem
  * @version 2013-05-15
  */
-@Entity
-@Table(name = "cms_guestbook")
-@DynamicInsert @DynamicUpdate
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Guestbook extends BaseEntity {
+public class Guestbook extends DataEntity<Guestbook> {
 	
 	private static final long serialVersionUID = 1L;
-	private Long id; 		// 编号
 	private String type; 	// 留言分类（咨询、建议、投诉、其它）
 	private String content; // 留言内容
 	private String name; 	// 姓名
@@ -59,28 +39,16 @@ public class Guestbook extends BaseEntity {
 		this.delFlag = DEL_FLAG_AUDIT;
 	}
 
-	public Guestbook(Long id){
+	public Guestbook(String id){
 		this();
 		this.id = id;
 	}
 	
-	@PrePersist
 	public void prePersist(){
+		this.id = IdGen.uuid();
 		this.createDate = new Date();
 	}
 	
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-//	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_cms_guestbook")
-//	@SequenceGenerator(name = "seq_cms_guestbook", sequenceName = "seq_cms_guestbook")
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
 	@Length(min=1, max=100)
 	public String getType() {
 		return type;
@@ -90,7 +58,7 @@ public class Guestbook extends BaseEntity {
 		this.type = type;
 	}
 
-	@Length(min=1, max=255)
+	@Length(min=1, max=2000)
 	public String getContent() {
 		return content;
 	}
@@ -153,9 +121,6 @@ public class Guestbook extends BaseEntity {
 		this.createDate = createDate;
 	}
 
-	@ManyToOne
-	@JoinColumn(name="re_user_id")
-	@NotFound(action = NotFoundAction.IGNORE)
 	public User getReUser() {
 		return reUser;
 	}

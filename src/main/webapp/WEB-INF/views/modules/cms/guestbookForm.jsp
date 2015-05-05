@@ -33,7 +33,7 @@
 	<form:form id="inputForm" modelAttribute="guestbook" action="${ctx}/cms/guestbook/save" method="post" class="form-horizontal">
 		<form:hidden path="id"/>
 		<form:hidden path="delFlag"/>
-		<tags:message content="${message}"/>
+		<sys:message content="${message}"/>
 		<div class="control-group">
 			<label class="control-label">名称:</label>
 			<div class="controls">

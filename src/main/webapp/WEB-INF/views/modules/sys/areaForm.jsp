@@ -32,18 +32,19 @@
 	</ul><br/>
 	<form:form id="inputForm" modelAttribute="area" action="${ctx}/sys/area/save" method="post" class="form-horizontal">
 		<form:hidden path="id"/>
-		<tags:message content="${message}"/>
+		<sys:message content="${message}"/>
 		<div class="control-group">
 			<label class="control-label">上级区域:</label>
 			<div class="controls">
-				<tags:treeselect id="area" name="parent.id" value="${area.parent.id}" labelName="parent.name" labelValue="${area.parent.name}"
-					title="区域" url="/sys/area/treeData" extId="${area.id}" cssClass="required"/>
+				<sys:treeselect id="area" name="parent.id" value="${area.parent.id}" labelName="parent.name" labelValue="${area.parent.name}"
+					title="区域" url="/sys/area/treeData" extId="${area.id}" cssClass="" allowClear="true"/>
 			</div>
 		</div>
 		<div class="control-group">
 			<label class="control-label">区域名称:</label>
 			<div class="controls">
 				<form:input path="name" htmlEscape="false" maxlength="50" class="required"/>
+				<span class="help-inline"><font color="red">*</font> </span>
 			</div>
 		</div>
 		<div class="control-group">
@@ -55,7 +56,7 @@
 		<div class="control-group">
 			<label class="control-label">区域类型:</label>
 			<div class="controls">
-				<form:select path="type">
+				<form:select path="type" class="input-medium">
 					<form:options items="${fns:getDictList('sys_area_type')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
 				</form:select>
 			</div>

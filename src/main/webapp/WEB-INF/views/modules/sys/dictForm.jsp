@@ -32,17 +32,17 @@
 	</ul><br/>
 	<form:form id="inputForm" modelAttribute="dict" action="${ctx}/sys/dict/save" method="post" class="form-horizontal">
 		<form:hidden path="id"/>
-		<tags:message content="${message}"/>
-		<div class="control-group">
-			<label class="control-label">标签:</label>
-			<div class="controls">
-				<form:input path="label" htmlEscape="false" maxlength="50" class="required"/>
-			</div>
-		</div>
+		<sys:message content="${message}"/>
 		<div class="control-group">
 			<label class="control-label">键值:</label>
 			<div class="controls">
 				<form:input path="value" htmlEscape="false" maxlength="50" class="required"/>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">标签:</label>
+			<div class="controls">
+				<form:input path="label" htmlEscape="false" maxlength="50" class="required"/>
 			</div>
 		</div>
 		<div class="control-group">
@@ -61,6 +61,12 @@
 			<label class="control-label">排序:</label>
 			<div class="controls">
 				<form:input path="sort" htmlEscape="false" maxlength="11" class="required digits"/>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">备注:</label>
+			<div class="controls">
+				<form:textarea path="remarks" htmlEscape="false" rows="3" maxlength="200" class="input-xlarge"/>
 			</div>
 		</div>
 		<div class="form-actions">

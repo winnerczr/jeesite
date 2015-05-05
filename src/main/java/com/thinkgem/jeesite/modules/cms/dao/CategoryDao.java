@@ -1,75 +1,60 @@
 /**
- * Copyright &copy; 2012-2013 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright &copy; 2012-2014 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
  */
 package com.thinkgem.jeesite.modules.cms.dao;
 
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import com.thinkgem.jeesite.common.persistence.BaseDao;
-import com.thinkgem.jeesite.common.persistence.BaseDaoImpl;
+import com.thinkgem.jeesite.common.persistence.TreeDao;
+import com.thinkgem.jeesite.common.persistence.annotation.MyBatisDao;
 import com.thinkgem.jeesite.modules.cms.entity.Category;
 
 /**
  * 栏目DAO接口
  * @author ThinkGem
- * @version 2013-05-15
+ * @version 2013-8-23
  */
-public interface CategoryDao extends CategoryDaoCustom, CrudRepository<Category, Long> {
-
-	@Modifying
-	@Query("update Category set delFlag='" + Category.DEL_FLAG_DELETE + "' where id = ?1 or parentIds like ?2")
-	public int deleteById(Long id, String likeParentIds);
+@MyBatisDao
+public interface CategoryDao extends TreeDao<Category> {
 	
-	public List<Category> findByParentIdsLike(String parentIds);
+	public List<Category> findModule(Category category);
+	
+//	public List<Category> findByParentIdsLike(Category category);
+//	{
+//		return find("from Category where parentIds like :p1", new Parameter(parentIds));
+//	}
 
-//	@Query("from Category where delFlag='" + Category.DEL_FLAG_NORMAL + "' order by site.id, sort")
-//	public List<Category> findAllList();
-
-	@Query("from Category where delFlag='" + Category.DEL_FLAG_NORMAL + "' and (module='' or module=?1) order by site.id, sort")
 	public List<Category> findByModule(String module);
+//	{
+//		return find("from Category where delFlag=:p1 and (module='' or module=:p2) order by site.id, sort", 
+//				new Parameter(Category.DEL_FLAG_NORMAL, module));
+//	}
+	
+	public List<Category> findByParentId(String parentId, String isMenu);
+//	{
+//		return find("from Category where delFlag=:p1 and parent.id=:p2 and inMenu=:p3 order by site.id, sort", 
+//				new Parameter(Category.DEL_FLAG_NORMAL, parentId, isMenu));
+//	}
 
-	@Query("from Category where delFlag='" + Category.DEL_FLAG_NORMAL + "' and parent.id=?1 and site.id=?2 order by site.id, sort")
-	public List<Category> findByParentId(Long parentId, Long siteId);
+	public List<Category> findByParentIdAndSiteId(Category entity);
 	
-	@Query("from Category where delFlag='" + Category.DEL_FLAG_NORMAL + "' and parent.id=:parentId order by site.id, sort")
-	public Page<Category> findByParentId(@Param("parentId") Long parentId, Pageable pageable);
+	public List<Map<String, Object>> findStats(String sql);
+//	{
+//		return find("from Category where delFlag=:p1 and parent.id=:p2 and site.id=:p3 order by site.id, sort", 
+//				new Parameter(Category.DEL_FLAG_NORMAL, parentId, siteId));
+//	}
 	
-	@Query("from Category where delFlag='" + Category.DEL_FLAG_NORMAL + "' and parent.id=?1 and inMenu=?2 order by site.id, sort")
-	public List<Category> findByParentId(Long parentId, String isMenu);
-	
+	//public List<Category> findByIdIn(String[] ids);
+//	{
+//		return find("from Category where id in (:p1)", new Parameter(new Object[]{ids}));
+//	}
+	//public List<Category> find(Category category);
+
 //	@Query("select distinct c from Category c, Role r, User u where c in elements (r.categoryList) and r in elements (u.roleList)" +
 //			" and c.delFlag='" + Category.DEL_FLAG_NORMAL + "' and r.delFlag='" + Role.DEL_FLAG_NORMAL + 
 //			"' and u.delFlag='" + User.DEL_FLAG_NORMAL + "' and u.id=?1 or (c.user.id=?1 and c.delFlag='" + Category.DEL_FLAG_NORMAL +
 //			"') order by c.site.id, c.sort")
 //	public List<Category> findByUserId(Long userId);
 	
-	public List<Category> findByIdIn(Long[] ids);
-	
-}
-
-/**
- * DAO自定义接口
- * @author ThinkGem
- */
-interface CategoryDaoCustom extends BaseDao<Category> {
-
-}
-
-/**
- * DAO自定义接口实现
- * @author ThinkGem
- */
-@Repository
-class CategoryDaoImpl extends BaseDaoImpl<Category> implements CategoryDaoCustom {
-
 }

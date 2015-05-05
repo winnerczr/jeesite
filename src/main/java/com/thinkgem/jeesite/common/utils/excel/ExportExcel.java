@@ -1,7 +1,5 @@
 /**
- * Copyright &copy; 2012-2013 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright &copy; 2012-2014 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
  */
 package com.thinkgem.jeesite.common.utils.excel;
 
@@ -153,7 +151,7 @@ public class ExportExcel {
 		List<String> headerList = Lists.newArrayList();
 		for (Object[] os : annotationList){
 			String t = ((ExcelField)os[0]).title();
-			// 如果是导出模板，则去掉注释
+			// 如果是导出，则去掉注释
 			if (type==1){
 				String[] ss = StringUtils.split(t, "**", 2);
 				if (ss.length==2){

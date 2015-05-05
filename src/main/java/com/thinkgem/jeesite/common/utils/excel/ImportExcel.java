@@ -1,7 +1,5 @@
 /**
- * Copyright &copy; 2012-2013 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright &copy; 2012-2014 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
  */
 package com.thinkgem.jeesite.common.utils.excel;
 
@@ -301,10 +299,15 @@ public class ImportExcel {
 							valType = ((Method)os[1]).getParameterTypes()[0];
 						}
 					}
-					//log.debug("Import value type: ["+i+","+colunm+"] " + valType);
+					//log.debug("Import value type: ["+i+","+column+"] " + valType);
 					try {
 						if (valType == String.class){
-							val = String.valueOf(val.toString());
+							String s = String.valueOf(val.toString());
+							if(StringUtils.endsWith(s, ".0")){
+								val = StringUtils.substringBefore(s, ".0");
+							}else{
+								val = String.valueOf(val.toString());
+							}
 						}else if (valType == Integer.class){
 							val = Double.valueOf(val.toString()).intValue();
 						}else if (valType == Long.class){

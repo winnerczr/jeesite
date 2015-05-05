@@ -1,7 +1,5 @@
 /**
- * Copyright &copy; 2012-2013 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright &copy; 2012-2014 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
  */
 package com.thinkgem.jeesite.common.utils;
 
@@ -251,10 +249,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		File file = new File(fileName);
 		if (file.exists() && file.isFile()) {
 			if (file.delete()) {
-				log.debug("删除单个文件 " + fileName + " 成功!");
+				log.debug("删除文件 " + fileName + " 成功!");
 				return true;
 			} else {
-				log.debug("删除单个文件 " + fileName + " 失败!");
+				log.debug("删除文件 " + fileName + " 失败!");
 				return false;
 			}
 		} else {
@@ -384,6 +382,32 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 
 	}
 
+	/**
+	 * 写入文件
+	 * @param file 要写入的文件
+	 */
+	public static void writeToFile(String fileName, String content, boolean append) {
+		try {
+			FileUtils.write(new File(fileName), content, "utf-8", append);
+			log.debug("文件 " + fileName + " 写入成功!");
+		} catch (IOException e) {
+			log.debug("文件 " + fileName + " 写入失败! " + e.getMessage());
+		}
+	}
+
+	/**
+	 * 写入文件
+	 * @param file 要写入的文件
+	 */
+	public static void writeToFile(String fileName, String content, String encoding, boolean append) {
+		try {
+			FileUtils.write(new File(fileName), content, encoding, append);
+			log.debug("文件 " + fileName + " 写入成功!");
+		} catch (IOException e) {
+			log.debug("文件 " + fileName + " 写入失败! " + e.getMessage());
+		}
+	}
+	
 	/**
 	 * 压缩文件或目录
 	 * @param srcDirName 压缩的根目录
@@ -576,6 +600,23 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		int index = filePath.indexOf(dirPaths);
 
 		return filePath.substring(index + dirPaths.length());
+	}
+	
+	/**
+	 * 修复路径，将 \\ 或 / 等替换为 File.separator
+	 * @param path
+	 * @return
+	 */
+	public static String path(String path){
+		String p = StringUtils.replace(path, "\\", "/");
+		p = StringUtils.join(StringUtils.split(p, "/"), "/");
+		if (!StringUtils.startsWithAny(p, "/") && StringUtils.startsWithAny(path, "\\", "/")){
+			p += "/";
+		}
+		if (!StringUtils.endsWithAny(p, "/") && StringUtils.endsWithAny(path, "\\", "/")){
+			p = p + "/";
+		}
+		return p;
 	}
 
 }

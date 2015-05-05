@@ -1,31 +1,15 @@
 /**
- * Copyright &copy; 2012-2013 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Copyright &copy; 2012-2014 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
  */
 package com.thinkgem.jeesite.modules.cms.entity;
 
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.validator.constraints.Length;
 
-import com.thinkgem.jeesite.common.persistence.BaseEntity;
+import com.thinkgem.jeesite.common.persistence.DataEntity;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 
 /**
@@ -33,16 +17,11 @@ import com.thinkgem.jeesite.modules.sys.entity.User;
  * @author ThinkGem
  * @version 2013-05-15
  */
-@Entity
-@Table(name = "cms_comment")
-@DynamicInsert @DynamicUpdate
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Comment extends BaseEntity {
+public class Comment extends DataEntity<Comment> {
 
 	private static final long serialVersionUID = 1L;
-	private Long id;		// 编号
 	private Category category;// 分类编号
-	private Long contentId;	// 归属分类内容的编号（Article.id、Photo.id、Download.id）
+	private String contentId;	// 归属分类内容的编号（Article.id、Photo.id、Download.id）
 	private String title;	// 归属分类内容的标题（Article.title、Photo.title、Download.title）
 	private String content; // 评论内容
 	private String name; 	// 评论姓名
@@ -57,7 +36,7 @@ public class Comment extends BaseEntity {
 		this.delFlag = DEL_FLAG_AUDIT;
 	}
 	
-	public Comment(Long id){
+	public Comment(String id){
 		this();
 		this.id = id;
 	}
@@ -67,26 +46,8 @@ public class Comment extends BaseEntity {
 		this.category = category;
 	}
 	
-	@PrePersist
-	public void prePersist(){
-		this.createDate = new Date();
-	}
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-//	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_cms_comment")
-//	@SequenceGenerator(name = "seq_cms_comment", sequenceName = "seq_cms_comment")
-	public Long getId() {
-		return id;
-	}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	@ManyToOne
-	@JoinColumn(name="category_id")
-	@NotFound(action = NotFoundAction.IGNORE)
 	@NotNull
 	public Category getCategory() {
 		return category;
@@ -97,11 +58,11 @@ public class Comment extends BaseEntity {
 	}
 
 	@NotNull
-	public Long getContentId() {
+	public String getContentId() {
 		return contentId;
 	}
 
-	public void setContentId(Long contentId) {
+	public void setContentId(String contentId) {
 		this.contentId = contentId;
 	}
 
@@ -132,9 +93,6 @@ public class Comment extends BaseEntity {
 		this.name = name;
 	}
 
-	@ManyToOne
-	@JoinColumn(name="audit_user_id")
-	@NotFound(action = NotFoundAction.IGNORE)
 	public User getAuditUser() {
 		return auditUser;
 	}

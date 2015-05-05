@@ -15,9 +15,6 @@ import com.thinkgem.jeesite.modules.oa.entity.Leave;
 
 /**
  * 销假后处理器
- * <p>设置销假时间</p>
- * <p>使用Spring代理，可以注入Bean，管理事物</p>
- *
  * @author liuj
  */
 @Service
@@ -27,25 +24,21 @@ public class LeaveReportProcessor implements TaskListener {
 	private static final long serialVersionUID = 1L;
 
 	@Autowired
-	LeaveDao leaveDao;
-	
+	private LeaveDao leaveDao;
 	@Autowired
-	RuntimeService runtimeService;
+	private RuntimeService runtimeService;
 	
-	/* (non-Javadoc)
-	 * @see org.activiti.engine.delegate.TaskListener#notify(org.activiti.engine.delegate.DelegateTask)
+	/**
+	 * 销假完成后执行，保存实际开始和结束时间
 	 */
 	public void notify(DelegateTask delegateTask) {
 		String processInstanceId = delegateTask.getProcessInstanceId();
 		ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
-		Leave leave = leaveDao.findOne(new Long(processInstance.getBusinessKey()));
-		
-		Object realityStartTime = delegateTask.getVariable("realityStartTime");
-		leave.setRealityStartTime((Date) realityStartTime);
-		Object realityEndTime = delegateTask.getVariable("realityEndTime");
-		leave.setRealityEndTime((Date) realityEndTime);
-		
-		leaveDao.save(leave);
+		Leave leave = new Leave(processInstance.getBusinessKey());
+		leave.setRealityStartTime((Date) delegateTask.getVariable("realityStartTime"));
+		leave.setRealityEndTime((Date) delegateTask.getVariable("realityEndTime"));
+		leave.preUpdate();
+		leaveDao.updateRealityTime(leave);
 	}
 
 }

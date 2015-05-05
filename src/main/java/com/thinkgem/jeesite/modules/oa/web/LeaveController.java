@@ -3,7 +3,6 @@
  */
 package com.thinkgem.jeesite.modules.oa.web;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,8 +12,6 @@ import javax.servlet.http.HttpSession;
 
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
-import org.activiti.engine.runtime.ProcessInstance;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +22,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.thinkgem.jeesite.common.config.Global;
+import com.google.common.collect.Maps;
 import com.thinkgem.jeesite.common.mapper.JsonMapper;
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.web.BaseController;
@@ -71,15 +67,14 @@ public class LeaveController extends BaseController {
 	@RequestMapping(value = "save", method = RequestMethod.POST)
 	public String save(Leave leave, RedirectAttributes redirectAttributes) {
 		try {
-			Map<String, Object> variables = new HashMap<String, Object>();
-			System.out.println(leave.getStartTime());
-			ProcessInstance processInstance = leaveService.save(leave, variables);
-			addMessage(redirectAttributes, "流程已启动，流程ID：" + processInstance.getId());
+			Map<String, Object> variables = Maps.newHashMap();
+			leaveService.save(leave, variables);
+			addMessage(redirectAttributes, "流程已启动，流程ID：" + leave.getProcessInstanceId());
 		} catch (Exception e) {
 			logger.error("启动请假流程失败：", e);
 			addMessage(redirectAttributes, "系统内部错误！");
 		}
-		return "redirect:"+Global.getAdminPath()+"/oa/leave/form";
+		return "redirect:" + adminPath + "/oa/leave/form";
 	}
 
 	/**
@@ -88,12 +83,11 @@ public class LeaveController extends BaseController {
 	 */
 	@RequiresPermissions("oa:leave:view")
 	@RequestMapping(value = {"list/task",""})
-	public ModelAndView taskList(HttpSession session) {
-		ModelAndView mav = new ModelAndView("modules/oa/leaveTask");
-		String userId = ObjectUtils.toString(UserUtils.getUser().getId());
+	public String taskList(HttpSession session, Model model) {
+		String userId = UserUtils.getUser().getLoginName();//ObjectUtils.toString(UserUtils.getUser().getId());
 		List<Leave> results = leaveService.findTodoTasks(userId);
-		mav.addObject("leaves", results);
-		return mav;
+		model.addAttribute("leaves", results);
+		return "modules/oa/leaveTask";
 	}
 
 	/**
@@ -108,7 +102,6 @@ public class LeaveController extends BaseController {
 		return "modules/oa/leaveList";
 	}
 	
-	
 	/**
 	 * 读取详细数据
 	 * @param id
@@ -116,11 +109,10 @@ public class LeaveController extends BaseController {
 	 */
 	@RequestMapping(value = "detail/{id}")
 	@ResponseBody
-	public String getLeave(@PathVariable("id") Long id) {
-		Leave leave = leaveService.findOne(id);
+	public String getLeave(@PathVariable("id") String id) {
+		Leave leave = leaveService.get(id);
 		return JsonMapper.getInstance().toJson(leave);
 	}
-
 
 	/**
 	 * 读取详细数据
@@ -129,13 +121,11 @@ public class LeaveController extends BaseController {
 	 */
 	@RequestMapping(value = "detail-with-vars/{id}/{taskId}")
 	@ResponseBody
-	public String getLeaveWithVars(@PathVariable("id") Long id, @PathVariable("taskId") String taskId) {
-		Leave leave = leaveService.findOne(id);
+	public String getLeaveWithVars(@PathVariable("id") String id, @PathVariable("taskId") String taskId) {
+		Leave leave = leaveService.get(id);
 		Map<String, Object> variables = taskService.getVariables(taskId);
 		leave.setVariables(variables);
 		return JsonMapper.getInstance().toJson(leave);
 	}
-
-
 
 }

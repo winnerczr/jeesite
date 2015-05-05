@@ -61,8 +61,9 @@
 										value: true,
 										type: 'B'
 									}]);
-							//驳回
-							 } else if (v=="no") {
+							 }
+							 //驳回
+							 else if (v=="no") {
 								 top.$.jBox("<div style='padding:10px;'><textarea id='hrBackReason' style='width: 250px; height: 60px;'></textarea></div>", { title: "请填写驳回理由", submit: function () {
 									 var hrBackReason=top.$("#hrBackReason").val();
 									 //必须填写驳回理由
@@ -70,21 +71,21 @@
 										 top.$.jBox.error('请填写驳回理由', '错误');
 										 return false;
 									 } else {
-											complete(taskId, [{
-												key: 'hrPass',
-												value: false,
-												type: 'B'
-											}, {
-												key: 'hrBackReason',
-												value: hrBackReason,
-												type: 'S'
-											}]);
+										complete(taskId, [{
+											key: 'hrPass',
+											value: false,
+											type: 'B'
+										}, {
+											key: 'hrBackReason',
+											value: hrBackReason,
+											type: 'S'
+										}]);
 									 }
-								 }
+								   }
 								});
 							 }
-						 }
-						 });
+						  }
+					   });
 					});
 				}
 				//调整申请
@@ -158,7 +159,6 @@
 			})
 		});
 		
-		
 		/**
 		 * 完成任务
 		 * @param {Object} taskId
@@ -167,7 +167,7 @@
 			// 转换JSON为字符串
 		    var keys = "", values = "", types = "";
 			if (variables) {
-				$.each(variables, function() {
+				$.each(variables, function(idx) {
 					if (keys != "") {
 						keys += ",";
 						values += ",";
@@ -179,34 +179,29 @@
 				});
 			}
 			// 发送任务完成请求
-		    $.post('${ctx}/sys/workflow/complete/' + taskId, {
-		        keys: keys,
-		        values: values,
-		        types: types
-		    }, function(resp) {
-		        if (resp == 'success') {
-		        	top.$.jBox.tip('任务完成');
-		            location.reload();
-		        } else {
-		        	top.$.jBox.tip('操作失败!');
-		        }
+		    $.post('${ctx}/act/task/complete/', {
+		    	taskId: taskId,
+		        "vars.keys": keys,
+		        "vars.values": values,
+		        "vars.types": types
+		    }, function(data) {
+		        top.$.jBox.tip('任务完成');
+		        //location = '${pageContext.request.contextPath}' + data;
+		        location.reload();
 		    });
 		}
 
-			/**
-			 * 完成任务
-			 * @param {Object} taskId
-			 */
-			function claim(taskId) {
-				$.post('${ctx}/sys/workflow/claim/' + taskId,{}, function(resp) {
-			        if (resp == 'success') {
-			        	top.$.jBox.tip('签收完成');
-			            location.reload();
-			        } else {
-			        	top.$.jBox.tip('签收失败!');
-			        }
-			    });
-			}
+		/**
+		 * 签收任务
+		 * @param {Object} taskId
+		 */
+		function claim(taskId) {
+			$.get('${ctx}/act/task/claim' ,{taskId: taskId}, function(data) {
+	        	top.$.jBox.tip('签收完成');
+	            //location = '${pageContext.request.contextPath}' + data;
+	        	location.reload();
+		    });
+		}
 	</script>
 	<script type="text/template" id="auditTemplate">
 		<table class="table table-striped ">
@@ -237,48 +232,47 @@
 		</table>
 	</script>
 	<script type="text/template" id="reportBackTemplate">
-	<table class="table table-striped ">
-		<tr>
-			<td width="100px;">申请人：</td>
-			<td>{{user.name}}</td>
-		</tr>
-		<tr>
-			<td>假种：</td>
-			<td>{{leaveTypeDictLabel}}</td>
-		</tr>
-		<tr>
-			<td>申请时间：</td>
-			<td>{{createDate}}</td>
-		</tr>
-		<tr>
-			<td>请假<font color="red">开始</font>时间：</td>
-			<td>{{startTime}}</td>
-		</tr>
-		<tr>
-			<td>请假<font color="red">结束</font>时间：</td>
-			<td>{{endTime}}</td>
-		</tr>
-		<tr>
-			<td>请假事由：</td>
-			<td>{{reason}}</td>
-		</tr>
-		<tr>
-			<td>实际开始时间：</td>
-			<td>
-				<input id="realityStartTime" readonly="readonly" maxlength="20" class=" Wdate required"
-						onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm',isShowClear:false});"/>
-			</td>
-		</tr>
-		<tr>
-			<td>实际结束时间：</td>
-			<td>
-				<input id="realityEndTime" readonly="readonly" maxlength="20" class=" Wdate required" 
-						onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm',isShowClear:false});"/>
-			</td>
-		</tr>
-	</table>
+		<table class="table table-striped ">
+			<tr>
+				<td width="100px;">申请人：</td>
+				<td>{{user.name}}</td>
+			</tr>
+			<tr>
+				<td>假种：</td>
+				<td>{{leaveTypeDictLabel}}</td>
+			</tr>
+			<tr>
+				<td>申请时间：</td>
+				<td>{{createDate}}</td>
+			</tr>
+			<tr>
+				<td>请假<font color="red">开始</font>时间：</td>
+				<td>{{startTime}}</td>
+			</tr>
+			<tr>
+				<td>请假<font color="red">结束</font>时间：</td>
+				<td>{{endTime}}</td>
+			</tr>
+			<tr>
+				<td>请假事由：</td>
+				<td>{{reason}}</td>
+			</tr>
+			<tr>
+				<td>实际开始时间：</td>
+				<td>
+					<input id="realityStartTime" readonly="readonly" maxlength="20" class=" Wdate required"
+							onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm',isShowClear:false});"/>
+				</td>
+			</tr>
+			<tr>
+				<td>实际结束时间：</td>
+				<td>
+					<input id="realityEndTime" readonly="readonly" maxlength="20" class=" Wdate required" 
+							onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm',isShowClear:false});"/>
+				</td>
+			</tr>
+		</table>
 	</script>
-
 	<script type="text/template" id="modifyApplyTemplate">
 		<table class="table table-striped " id="modifyApplyContent">
 			<tr>
@@ -330,7 +324,7 @@
 		<li><a href="${ctx}/oa/leave/list">所有任务</a></li>
 		<shiro:hasPermission name="oa:leave:edit"><li><a href="${ctx}/oa/leave/form">请假申请</a></li></shiro:hasPermission>
 	</ul>
-	<tags:message content="${message}"/>
+	<sys:message content="${message}"/>
 	<table id="contentTable" class="table table-striped table-bordered table-condensed">
 			<tr>
 				<th>假种</th>
@@ -357,6 +351,7 @@
 					<td><fmt:formatDate value="${task.createTime}" type="both"/></td>
 					<td>${pi.suspended ? "已挂起" : "正常" }；<b title='流程版本号'>V: ${leave.processDefinition.version}</b></td>
 					<td>
+						<a target="_blank" href="${ctx}/act/task/trace/photo/${task.processDefinitionId}/${task.executionId}">跟踪</a>
 						<c:if test="${empty task.assignee}">
 							<a class="claim" href="#" onclick="javescript:claim('${task.id}');">签收</a>
 						</c:if>

@@ -15,23 +15,17 @@ import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.service.BaseService;
 import com.thinkgem.jeesite.common.utils.Collections3;
+import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.modules.act.utils.ActUtils;
 import com.thinkgem.jeesite.modules.oa.dao.LeaveDao;
 import com.thinkgem.jeesite.modules.oa.entity.Leave;
-import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
-import com.thinkgem.jeesite.modules.sys.utils.workflow.ProcessDefinitionKey;
 
 /**
  * 请假Service
@@ -56,12 +50,12 @@ public class LeaveService extends BaseService {
 	private IdentityService identityService;
 
 	/**
-	 *获取流程详细及工作流参数
+	 * 获取流程详细及工作流参数
 	 * @param id
 	 */
 	@SuppressWarnings("unchecked")
-	public Leave findOne(Long id) {
-		Leave leave= leaveDao.findOne(id);
+	public Leave get(String id) {
+		Leave leave = leaveDao.get(id);
 		Map<String,Object> variables=null;
 		HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(leave.getProcessInstanceId()).singleResult();
 		if(historicProcessInstance!=null) {
@@ -77,46 +71,60 @@ public class LeaveService extends BaseService {
 	 * 启动流程
 	 * @param entity
 	 */
-	public ProcessInstance save(Leave entity, Map<String, Object> variables) {
-		leaveDao.save(entity);
-		logger.debug("save entity: {}", entity);
-		String businessKey = entity.getId().toString();
+	@Transactional(readOnly = false)
+	public void save(Leave leave, Map<String, Object> variables) {
+		
+		// 保存业务数据
+		if (StringUtils.isBlank(leave.getId())){
+			leave.preInsert();
+			leaveDao.insert(leave);
+		}else{
+			leave.preUpdate();
+			leaveDao.update(leave);
+		}
+		logger.debug("save entity: {}", leave);
 		
 		// 用来设置启动流程的人员ID，引擎会自动把用户ID保存到activiti:initiator中
-		identityService.setAuthenticatedUserId(ObjectUtils.toString(entity.getCreateBy().getId()));
+		identityService.setAuthenticatedUserId(leave.getCurrentUser().getLoginName());
 		
-		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(ProcessDefinitionKey.Leave.getKey(), businessKey, variables);
-		String processInstanceId = processInstance.getId();
-		entity.setProcessInstanceId(processInstanceId);
-		leaveDao.updateProcessInstanceId(entity.getId(), entity.getProcessInstanceId());
-		logger.debug("start process of {key={}, bkey={}, pid={}, variables={}}", new Object[] { ProcessDefinitionKey.Leave.getKey(), businessKey,processInstanceId, variables });
-		return processInstance;
+		// 启动流程
+		String businessKey = leave.getId().toString();
+		variables.put("type", "leave");
+		variables.put("busId", businessKey);
+		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(ActUtils.PD_LEAVE[0], businessKey, variables);
+		leave.setProcessInstance(processInstance);
+		
+		// 更新流程实例ID
+		leave.setProcessInstanceId(processInstance.getId());
+		leaveDao.updateProcessInstanceId(leave);
+		
+		logger.debug("start process of {key={}, bkey={}, pid={}, variables={}}", new Object[] { 
+				ActUtils.PD_LEAVE[0], businessKey, processInstance.getId(), variables });
+		
 	}
 
 	/**
 	 * 查询待办任务
-	 * 
 	 * @param userId 用户ID
 	 * @return
 	 */
-	@Transactional(readOnly = true)
 	public List<Leave> findTodoTasks(String userId) {
+		
 		List<Leave> results = new ArrayList<Leave>();
 		List<Task> tasks = new ArrayList<Task>();
 		// 根据当前人的ID查询
-		List<Task> todoList = taskService.createTaskQuery().processDefinitionKey(ProcessDefinitionKey.Leave.getKey()).taskAssignee(userId).active().orderByTaskPriority().desc().orderByTaskCreateTime().desc().list();
+		List<Task> todoList = taskService.createTaskQuery().processDefinitionKey(ActUtils.PD_LEAVE[0]).taskAssignee(userId).active().orderByTaskPriority().desc().orderByTaskCreateTime().desc().list();
 		// 根据当前人未签收的任务
-		List<Task> unsignedTasks = taskService.createTaskQuery().processDefinitionKey(ProcessDefinitionKey.Leave.getKey()).taskCandidateUser(userId).active().orderByTaskPriority().desc().orderByTaskCreateTime().desc().list();
+		List<Task> unsignedTasks = taskService.createTaskQuery().processDefinitionKey(ActUtils.PD_LEAVE[0]).taskCandidateUser(userId).active().orderByTaskPriority().desc().orderByTaskCreateTime().desc().list();
 		// 合并
 		tasks.addAll(todoList);
 		tasks.addAll(unsignedTasks);
 		// 根据流程的业务ID查询实体并关联
 		for (Task task : tasks) {
 			String processInstanceId = task.getProcessInstanceId();
-			ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).active()
-					.singleResult();
+			ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).active().singleResult();
 			String businessKey = processInstance.getBusinessKey();
-			Leave leave = leaveDao.findOne(new Long(businessKey));
+			Leave leave = leaveDao.get(businessKey);
 			leave.setTask(task);
 			leave.setProcessInstance(processInstance);
 			leave.setProcessDefinition(repositoryService.createProcessDefinitionQuery().processDefinitionId((processInstance.getProcessDefinitionId())).singleResult());
@@ -126,35 +134,14 @@ public class LeaveService extends BaseService {
 	}
 
 	public Page<Leave> find(Page<Leave> page, Leave leave) {
-		DetachedCriteria dc = leaveDao.createDetachedCriteria();
-		if (StringUtils.isNotBlank(leave.getIds())){
-			String ids =leave.getIds().trim().replace("　", ",").replace(" ",",").replace("，", ",");
-			List<Long> idList =Lists.newArrayList();
-			for(String id:ids.split(",")) {
-				if(id.matches("\\d*")) {
-					idList.add(Long.valueOf(id));
-				}
-			}
-			if(idList.size()>0) {
-				dc.add(Restrictions.in("id",idList));
-			}
-		}
-		if(leave.getCreateDateStart()!=null) {
-			dc.add(Restrictions.ge("createDate", leave.getCreateDateStart()));
-		} 
-		if(leave.getCreateDateEnd()!=null) {
-			dc.add(Restrictions.ge("createDate", leave.getCreateDateEnd()));
-		} 
-		if(StringUtils.isNotBlank(leave.getLeaveType())) {
-			dc.add(Restrictions.like("leaveType", leave.getLeaveType()));
-		}
-		dc.createAlias("createBy", "createBy");
-		dc.createAlias("createBy.office", "office");
-		dc.add(dataScopeFilter(UserUtils.getUser(), "office", "createBy"));
-		dc.addOrder(Order.desc("id"));
-		Page<Leave> result= leaveDao.find(page, dc);
-		for(Leave item:result.getList()) {
-			String processInstanceId=item.getProcessInstanceId();
+
+		leave.getSqlMap().put("dsf", dataScopeFilter(leave.getCurrentUser(), "o", "u"));
+		
+		leave.setPage(page);
+		page.setList(leaveDao.findList(leave));
+		
+		for(Leave item : page.getList()) {
+			String processInstanceId = item.getProcessInstanceId();
 			Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).active().singleResult();
 			item.setTask(task);
 			HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
@@ -163,10 +150,12 @@ public class LeaveService extends BaseService {
 				item.setProcessDefinition(repositoryService.createProcessDefinitionQuery().processDefinitionId(historicProcessInstance.getProcessDefinitionId()).singleResult());
 			} else {
 				ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).active().singleResult();
-				item.setProcessInstance(processInstance);
-				item.setProcessDefinition(repositoryService.createProcessDefinitionQuery().processDefinitionId(processInstance.getProcessDefinitionId()).singleResult());
+				if (processInstance != null){
+					item.setProcessInstance(processInstance);
+					item.setProcessDefinition(repositoryService.createProcessDefinitionQuery().processDefinitionId(processInstance.getProcessDefinitionId()).singleResult());
+				}
 			}
 		}
-		return result;
+		return page;
 	}
 }

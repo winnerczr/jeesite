@@ -4,29 +4,19 @@
 package com.thinkgem.jeesite.modules.oa.entity;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
 
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.validator.constraints.Length;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.DataEntity;
+import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.utils.DictUtils;
 
@@ -35,14 +25,9 @@ import com.thinkgem.jeesite.modules.sys.utils.DictUtils;
  * @author liuj
  * @version 2013-04-05
  */
-@Entity
-@Table(name = "oa_leave")
-@DynamicInsert @DynamicUpdate
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Leave extends DataEntity {
+public class Leave extends DataEntity<Leave> {
 	
 	private static final long serialVersionUID = 1L;
-	private Long id; 		// 编号
 	private String reason; 	// 请假原因
 	private String processInstanceId; // 流程实例编号
 	private Date startTime;	// 请假开始日期
@@ -70,23 +55,10 @@ public class Leave extends DataEntity {
 		super();
 	}
 
-	public Leave(Long id){
-		this();
-		this.id = id;
+	public Leave(String id){
+		super();
 	}
 	
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-//	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_oa_leave")
-//	@SequenceGenerator(name = "seq_oa_leave", sequenceName = "seq_oa_leave")
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
 	public String getLeaveType() {
 		return leaveType;
 	}
@@ -95,7 +67,6 @@ public class Leave extends DataEntity {
 		this.leaveType = leaveType;
 	}
 	
-	@Transient
 	public String getLeaveTypeDictLabel() {
 		return DictUtils.getDictLabel(leaveType, "oa_leave_type", "");
 	}
@@ -117,7 +88,6 @@ public class Leave extends DataEntity {
 		this.processInstanceId = processInstanceId;
 	}
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	public Date getStartTime() {
 		return startTime;
@@ -127,7 +97,6 @@ public class Leave extends DataEntity {
 		this.startTime = startTime;
 	}
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	public Date getEndTime() {
 		return endTime;
@@ -137,7 +106,6 @@ public class Leave extends DataEntity {
 		this.endTime = endTime;
 	}
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	public Date getRealityStartTime() {
 		return realityStartTime;
@@ -147,7 +115,6 @@ public class Leave extends DataEntity {
 		this.realityStartTime = realityStartTime;
 	}
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	public Date getRealityEndTime() {
 		return realityEndTime;
@@ -157,7 +124,6 @@ public class Leave extends DataEntity {
 		this.realityEndTime = realityEndTime;
 	}
 	
-	@Transient
 	public User getUser() {
 		return createBy;
 	}
@@ -166,7 +132,6 @@ public class Leave extends DataEntity {
 		this.createBy = user;
 	}
 
-	@Transient
 	public Task getTask() {
 		return task;
 	}
@@ -175,7 +140,6 @@ public class Leave extends DataEntity {
 		this.task = task;
 	}
 
-	@Transient
 	public Map<String, Object> getVariables() {
 		return variables;
 	}
@@ -184,7 +148,6 @@ public class Leave extends DataEntity {
 		this.variables = variables;
 	}
 
-	@Transient
 	public ProcessInstance getProcessInstance() {
 		return processInstance;
 	}
@@ -193,7 +156,6 @@ public class Leave extends DataEntity {
 		this.processInstance = processInstance;
 	}
 
-	@Transient
 	public HistoricProcessInstance getHistoricProcessInstance() {
 		return historicProcessInstance;
 	}
@@ -202,7 +164,6 @@ public class Leave extends DataEntity {
 		this.historicProcessInstance = historicProcessInstance;
 	}
 
-	@Transient
 	public ProcessDefinition getProcessDefinition() {
 		return processDefinition;
 	}
@@ -211,16 +172,23 @@ public class Leave extends DataEntity {
 		this.processDefinition = processDefinition;
 	}
 
-	@Transient
 	public String getIds() {
-		return ids;
+		List<String> idList = Lists.newArrayList();
+		if (StringUtils.isNotBlank(ids)){
+			String ss = ids.trim().replace("　", ",").replace(" ",",").replace("，", ",").replace("'", "");
+			for(String s : ss.split(",")) {
+//				if(s.matches("\\d*")) {
+					idList.add("'"+s+"'");
+//				}
+			}
+		}
+		return StringUtils.join(idList, ",");
 	}
 
 	public void setIds(String ids) {
 		this.ids = ids;
 	}
 
-	@Transient
 	public Date getCreateDateStart() {
 		return createDateStart;
 	}
@@ -229,7 +197,6 @@ public class Leave extends DataEntity {
 		this.createDateStart = createDateStart;
 	}
 
-	@Transient
 	public Date getCreateDateEnd() {
 		return createDateEnd;
 	}
@@ -237,7 +204,7 @@ public class Leave extends DataEntity {
 	public void setCreateDateEnd(Date createDateEnd) {
 		this.createDateEnd = createDateEnd;
 	}
-
+	
 }
 
 

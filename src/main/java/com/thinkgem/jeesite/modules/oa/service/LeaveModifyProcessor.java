@@ -31,12 +31,13 @@ public class LeaveModifyProcessor implements TaskListener {
 	public void notify(DelegateTask delegateTask) {
 		String processInstanceId = delegateTask.getProcessInstanceId();
 		ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
-		Leave leave = leaveDao.findOne(new Long(processInstance.getBusinessKey()));
+		Leave leave = new Leave(processInstance.getBusinessKey());
 		leave.setLeaveType((String) delegateTask.getVariable("leaveType"));
 		leave.setStartTime((Date) delegateTask.getVariable("startTime"));
 		leave.setEndTime((Date) delegateTask.getVariable("endTime"));
 		leave.setReason((String) delegateTask.getVariable("reason"));
-		leaveDao.save(leave);
+		leave.preUpdate();
+		leaveDao.update(leave);
 	}
 
 }

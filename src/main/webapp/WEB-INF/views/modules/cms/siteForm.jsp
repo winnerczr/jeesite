@@ -32,7 +32,7 @@
 	</ul><br/>
 	<form:form id="inputForm" modelAttribute="site" action="${ctx}/cms/site/save" method="post" class="form-horizontal">
 		<form:hidden path="id"/>
-		<tags:message content="${message}"/>
+		<sys:message content="${message}"/>
 		<div class="control-group">
 			<label class="control-label">站点名称:</label>
 			<div class="controls">
@@ -43,6 +43,14 @@
 			<label class="control-label">站点标题:</label>
 			<div class="controls">
 				<form:input path="title" htmlEscape="false" maxlength="200" class="input-xlarge required"/>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">站点Logo:</label>
+			<div class="controls">
+				<form:hidden path="logo" htmlEscape="false" maxlength="255" class="input-xlarge"/>
+				<sys:ckfinder input="logo" type="images" uploadPath="/cms/site"/>
+				<span class="help-inline">建议Logo大小：1000 × 145（像素）</span>
 			</div>
 		</div>
 		<div class="control-group">
@@ -61,7 +69,7 @@
 		<div class="control-group">
 			<label class="control-label">默认主题:</label>
 			<div class="controls">
-				<form:select path="theme">
+				<form:select path="theme" class="input-medium">
 					<form:options items="${fns:getDictList('cms_theme')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
 				</form:select>
 			</div>
@@ -70,7 +78,13 @@
 			<label class="control-label">版权信息:</label>
 			<div class="controls">
 				<form:textarea id="copyright" htmlEscape="true" path="copyright" rows="4" maxlength="200" class="input-xxlarge"/>
-				<tags:ckeditor replace="copyright" uploadPath="/cms/site" />
+				<sys:ckeditor replace="copyright" uploadPath="/cms/site" />
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">自定义首页视图:</label>
+			<div class="controls">
+				<form:input path="customIndexView" htmlEscape="false" maxlength="200"/>
 			</div>
 		</div>
 		<div class="form-actions">
